@@ -1,0 +1,145 @@
+basePath: /
+definitions:
+  storage.Message:
+    properties:
+      created_at:
+        type: string
+      id:
+        type: string
+      key:
+        type: string
+      processed:
+        type: boolean
+      value:
+        type: string
+    type: object
+  storage.MessageStats:
+    properties:
+      processed_messages:
+        type: integer
+      total_messages:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для работы с сообщениями.
+  title: Message Service API
+  version: "1.0"
+paths:
+  /health/db:
+    get:
+      description: Проверяет состояние подключения к базе данных
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Проверяет состояние подключения к базе данных
+      tags:
+      - health
+  /health/kafka:
+    get:
+      description: Проверяет состояние подключения к Kafka
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Проверяет состояние подключения к Kafka
+      tags:
+      - health
+  /messages:
+    post:
+      consumes:
+      - application/json
+      description: Создает новое сообщение и отправляет его в Kafka
+      parameters:
+      - description: Message
+        in: body
+        name: message
+        required: true
+        schema:
+          additionalProperties: true
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Создает новое сообщение
+      tags:
+      - messages
+  /messages/{id}:
+    get:
+      description: Возвращает сообщение по ID
+      parameters:
+      - description: Message ID
+        in: path
+        name: id
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/storage.Message'
+        "400":
+          description: Bad Request
+          schema:
+            additionalProperties: true
+            type: object
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Получает сообщение по ID
+      tags:
+      - messages
+  /messages/stats:
+    get:
+      description: Возвращает статистику сообщений
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/storage.MessageStats'
+        "500":
+          description: Internal Server Error
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Получает статистику сообщений
+      tags:
+      - messages
+swagger: "2.0"

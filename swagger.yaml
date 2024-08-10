@@ -1,0 +1,153 @@
+openapi: 3.0.0
+info:
+  title: Message Service API
+  description: API для работы с сообщениями в микросервисе
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Локальный сервер
+paths:
+  /messages:
+    post:
+      summary: Создать сообщение
+      description: Создает новое сообщение и отправляет его в Kafka.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                key:
+                  type: string
+                  description: Ключ сообщения
+                value:
+                  type: string
+                  description: Значение сообщения
+              required:
+                - key
+                - value
+      responses:
+        '200':
+          description: Сообщение успешно создано
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор созданного сообщения
+                  status:
+                    type: string
+                    description: Статус создания сообщения
+        '400':
+          description: Неверный запрос
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /messages/{id}:
+    get:
+      summary: Получить сообщение по ID
+      description: Получает сообщение по его уникальному идентификатору.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Идентификатор сообщения
+      responses:
+        '200':
+          description: Сообщение найдено
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: string
+                    description: Идентификатор сообщения
+                  key:
+                    type: string
+                    description: Ключ сообщения
+                  value:
+                    type: string
+                    description: Значение сообщения
+                  processed:
+                    type: boolean
+                    description: Статус обработки сообщения
+                  created_at:
+                    type: string
+                    format: date-time
+                    description: Дата и время создания сообщения
+        '400':
+          description: Неверный ID
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /messages/stats:
+    get:
+      summary: Получить статистику сообщений
+      description: Получает статистику сообщений, включая общее количество и количество обработанных сообщений.
+      responses:
+        '200':
+          description: Статистика сообщений
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  total_messages:
+                    type: integer
+                    description: Общее количество сообщений
+                  processed_messages:
+                    type: integer
+                    description: Количество обработанных сообщений
+        '500':
+          description: Внутренняя ошибка сервера
+
+  /health/db:
+    get:
+      summary: Проверить состояние базы данных
+      description: Проверяет состояние подключения к базе данных.
+      responses:
+        '200':
+          description: База данных в порядке
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Статус подключения к базе данных
+        '500':
+          description: Ошибка подключения к базе данных
+
+  /health/kafka:
+    get:
+      summary: Проверить состояние Kafka
+      description: Проверяет состояние подключения к Kafka.
+      responses:
+        '200':
+          description: Kafka в порядке
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                    description: Статус подключения к Kafka
+        '500':
+          description: Ошибка подключения к Kafka
+
+  /metrics:
+    get:
+      summary: Метрики Prometheus
+      description: Интеграция с Prometheus для сбора метрик.
+      responses:
+        '200':
+          description: Метрики успешно получены
+

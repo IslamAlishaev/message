@@ -10,10 +10,14 @@ import (
 
 // SetupRoutes настраивает маршруты для API
 func SetupRoutes(r *gin.Engine, db *storage.PostgresDB, producer *kafka.Producer) {
-    r.POST("/messages", handler.ReceiveMessage(db, producer))
-    
-    r.GET("/stats", handler.GetStats(db))
-    
-    r.GET("/metrics", gin.WrapH(promhttp.Handler())) // Для Prometheus
+    h := handler.NewHandler(db, producer)
+
+    r.POST("/messages", h.HandleCreateMessage) // запросы на создание сообщения
+    r.GET("/messages/:id", h.HandleGetMessage) // запросы на получение сообщения
+    r.GET("/messages/stats", h.HandleGetStats) // запросы на получение статистики сообщений
+    r.GET("/metrics", gin.WrapH(promhttp.Handler())) // для интеграции приложения с Prometheus (мониторинг)
+    // Добавленние маршрутов для проверки состояния системы
+    r.GET("/health/db", h.CheckDBHealth)       // проверка состояния БД
+    r.GET("/health/kafka", h.CheckKafkaHealth) // проверка состояния Kafka
 }
 

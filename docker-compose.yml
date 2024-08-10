@@ -14,7 +14,7 @@ services:
       - "5432:5432"
     volumes:
       - ./data/pgdata:/var/lib/postgresql/data
-      - ./initdb:/docker-entrypoint-initdb.d 
+      - ./initdb:/docker-entrypoint-initdb.d
 
   kafka:
     image: bitnami/kafka:3.4
@@ -32,20 +32,32 @@ services:
       KAFKA_CFG_CONTROLLER_LISTENER_NAMES: "CONTROLLER"
       KAFKA_CFG_INTER_BROKER_LISTENER_NAME: "PLAINTEXT"
       KAFKA_CFG_LOG_DIRS: "/var/lib/kafka/data"
+      KAFKA_CFG_LOG_RETENTION_MS: "604800000" # 7 дней
+      KAFKA_CFG_LOG_RETENTION_BYTES: "1073741824" # 1гб
       ALLOW_PLAINTEXT_LISTENER: "yes"
     volumes:
       - ./data/kafka:/var/lib/kafka:rw
 
   app:
-    image: message_service:0.0.1
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
     ports:
       - "8080:8080"
-      - "6060:6060"
-
-    depends_on:
-      - db
-      - kafka
     environment:
       DATABASE_URL: "postgres://username:password@db:5432/message_service?sslmode=disable"
       KAFKA_BROKER: "kafka:9092"
+    depends_on:
+      - db
+      - kafka
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+      - ./auth_basic:/etc/nginx/auth_basic
+    depends_on:
+      - app
+
